@@ -18,6 +18,20 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Routing\Router;
 use Illuminate\Routing\UrlGenerator;
+use Illuminate\Database\Capsule\Manager as Capsule;
+
+$capsule = new Capsule;
+
+$capsule->addConnection([
+    'driver'    => 'mysql',
+    'host'      => 'localhost',
+    'database'  => 'otptest',
+    'username'  => 'admin',
+    'password'  => '1234',
+    'charset'   => 'utf8',
+    'collation' => 'utf8_unicode_ci',
+    'prefix'    => '',
+], 'mysql');
 
 // Create a service container
 $container = new Container;
@@ -29,6 +43,10 @@ $container->instance('Illuminate\Http\Request', $request);
 // Using Illuminate/Events/Dispatcher here (not required); any implementation of
 // Illuminate/Contracts/Event/Dispatcher is acceptable
 $events = new Dispatcher($container);
+
+$capsule->setEventDispatcher($events);
+
+$capsule->setAsGlobal();
 
 // Create the router instance
 $router = new Router($events, $container);
