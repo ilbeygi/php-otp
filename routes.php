@@ -6,24 +6,12 @@ use Illuminate\Routing\Router;
 /** @var $router Router */
 
 $router->name('home')->get('/', function () {
-    return 'hello OTP PHP!';
+    return [
+        'error' => true
+    ];
 });
 
-$router->get('bye', function () {
-    return 'goodbye world!';
+$router->group(['namespace' => 'App\Controllers', 'prefix' => 'otp'], function (Router $router) {
+    $router->post('/send', ['name' => 'otp.send', 'uses' => 'OtpController@send']);
+    $router->post('/verify', ['name' => 'otp.verify', 'uses' => 'OtpController@verify']);
 });
-
-$router->group(['namespace' => 'App\Controllers', 'prefix' => 'users'], function (Router $router) {
-    $router->get('/', ['name' => 'users.index', 'uses' => 'UsersController@index']);
-    $router->post('/', ['name' => 'users.store', 'uses' => 'UsersController@store']);
-});
-
-// Redirect
-$router->get('/menu', function () use ($router) {
-    return new RedirectResponse($router->getRoutes()->getByName('home')->uri());
-});
-
-// catch-all route
-$router->any('{any}', function () {
-    return 'four oh four';
-})->where('any', '(.*)');
