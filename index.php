@@ -25,7 +25,7 @@ $capsule = new Capsule;
 $capsule->addConnection([
     'driver'    => 'mysql',
     'host'      => 'localhost',
-    'database'  => 'otptest',
+    'database'  => 'otp',
     'username'  => 'admin',
     'password'  => '1234',
     'charset'   => 'utf8',
