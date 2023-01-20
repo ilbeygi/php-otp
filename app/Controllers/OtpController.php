@@ -3,22 +3,39 @@
 namespace App\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Container\Container;
 use Illuminate\Http\Request;
 use Illuminate\Database\Capsule\Manager as DB;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Translation\FileLoader;
+use Illuminate\Translation\Translator;
+use Illuminate\Validation\Factory;
 
 class OtpController
 {
     public function send(Request $request)
     {
-        if (! $request->has('mobile')) {
+        $loader = new FileLoader(new Filesystem, 'lang');
+        $translator = new Translator($loader, 'en');
+        $validation = new Factory($translator, new Container);
+
+        $validator = $validation->make($request->all(), [
+            'mobile' => 'required|min:10|max:20'
+        ]);
+
+        if ($validator->fails()) {
             return [
                 'error' => true,
-                'message' => 'Mobile is invalid.'
+                'errors' => $validator->errors()
             ];
         }
 
         $mobile = $request->input('mobile');
         $otp = mt_rand(100000, 999999);
+
+        DB::connection('mysql')->table('otp_table')->where('mobile' , $mobile)->update([
+            'is_used' => 1
+        ]);
 
         DB::connection('mysql')->table('otp_table')->insert([
             'mobile' => $mobile,
