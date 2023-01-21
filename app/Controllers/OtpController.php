@@ -53,10 +53,49 @@ class OtpController
 
     public function verify(Request $request)
     {
-        // verify otp
+        $loader = new FileLoader(new Filesystem, 'lang');
+        $translator = new Translator($loader, 'en');
+        $validation = new Factory($translator, new Container);
+
+        $validator = $validation->make($request->all(), [
+            'mobile' => 'required|min:10|max:20',
+            'code' => 'required|int',
+        ]);
+
+        if ($validator->fails()) {
+            return [
+                'error' => true,
+                'errors' => $validator->errors()
+            ];
+        }
+
+        $exists = DB::connection('mysql')->table('otp_table')
+            ->where('mobile', $request->input('mobile'))
+            ->where('code', $request->input('code'))
+            ->where('is_used', 0)
+            ->where('expired_at', '>', Carbon::now()->format('Y-m-d H:i:s'))
+            ->exists();
+
+        if (! $exists) {
+            return [
+                'error' => true,
+                'message' => 'Code is invalid.'
+            ];
+        }
+
+        DB::connection('mysql')->table('otp_table')
+            ->where('mobile', $request->input('mobile'))
+            ->where('code', $request->input('code'))
+            ->where('is_used', 0)
+            ->update([
+                'is_used' => 1
+            ]);
+
         return [
-            'verify' => true
-        ];
+            'success' => true,
+            'message' => 'verified',
+            'token' => 'TOKEN'
+        ];  
     }
 
     private function sendOtpWithSMS(string $mobile, int $otp): void
